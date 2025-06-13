@@ -1,0 +1,36 @@
+controller:
+  # K3s는 단일 노드 환경이 많으므로 DaemonSet으로 배포
+  kind: DaemonSet
+
+  # EC2의 80/443 포트를 직접 사용하기 위해 hostNetwork 사용
+  hostNetwork: true
+
+  # IngressClass 이름 정의 (Ingress 리소스에서 ingressClassName: nginx 로 사용할 것)
+  ingressClass: nginx
+
+  ingressClassResource:
+    # IngressClass 이름
+    name: nginx
+    # 컨트롤러 식별자 (기본값과 동일)
+    controllerValue: "k8s.io/ingress-nginx"
+
+  service:
+    # EC2에는 LoadBalancer가 없으므로 NodePort로 외부 노출
+    type: NodePort
+
+    # 포트 고정: 포트 충돌을 피하고 cert-manager의 HTTP-01 challenge 대응
+    nodePorts:
+      http: 80     # HTTP 트래픽용
+      https: 443   # HTTPS 트래픽용
+
+  # 로그 레벨 (선택: 필요시 debug로 변경 가능)
+  # extraArgs:
+  #   v: "2"
+
+# 기본 metrics-server 및 Prometheus 설정은 비활성화 (선택)
+metrics:
+  enabled: false
+
+# admission webhook 비활성화 가능 (단일 노드 환경에서는 생략 가능)
+defaultBackend:
+  enabled: true
